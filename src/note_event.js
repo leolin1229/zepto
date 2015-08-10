@@ -7,7 +7,7 @@
       slice = Array.prototype.slice,
       isFunction = $.isFunction,
       isString = function(obj){ return typeof obj == 'string' },
-      handlers = {},
+      handlers = {},// 存储所有回调函数
       specialEvents={},
       focusinSupported = 'onfocusin' in window,// 'onfocusin'支持冒泡
       focus = { focus: 'focusin', blur: 'focusout' },
@@ -51,7 +51,7 @@
   }
 
   function add(element, events, fn, data, selector, delegator, capture){
-    var id = zid(element), set = (handlers[id] || (handlers[id] = []))
+    var id = zid(element), set = (handlers[id] || (handlers[id] = [])) // set取上一次的handler
     events.split(/\s/).forEach(function(event){
       if (event == 'ready') return $(document).ready(fn)
       var handler   = parse(event)
@@ -65,7 +65,8 @@
           return handler.fn.apply(this, arguments)
       }
       handler.del   = delegator
-      var callback  = delegator || fn
+      var callback  = delegator || fn // 这个细节要注意, 优先取代理函数, 因为若代理函数存在则证明已经把fn绑定好
+      // handler.proxy用于addEventListener的回调函数参数
       handler.proxy = function(e){
         e = compatible(e)
         if (e.isImmediatePropagationStopped()) return
@@ -74,9 +75,11 @@
         if (result === false) e.preventDefault(), e.stopPropagation()
         return result
       }
+      // 回调函数id, set临时存储保证递增
       handler.i = set.length
       set.push(handler)
       if ('addEventListener' in element)
+        // 调用addEventListener绑定
         element.addEventListener(realEvent(handler.e), handler.proxy, eventCapture(handler, capture))
     })
   }
@@ -124,13 +127,14 @@
   var returnTrue = function(){return true},
       returnFalse = function(){return false},
       ignoreProperties = /^([A-Z]|returnValue$|layer[XY]$)/,
-      // 对三大事件函数重置
+      // 对三大事件状态进行标记, 如event.isDefaultPrevented()可获取是否preventDefault
       eventMethods = {
         preventDefault: 'isDefaultPrevented',
         stopImmediatePropagation: 'isImmediatePropagationStopped', // 阻止当前事件的冒泡行为并且阻止当前事件所在元素上的所有相同类型事件的事件处理函数的继续执行
         stopPropagation: 'isPropagationStopped'
       }
 
+  // 对preventDefault, stopImmediatePropagation, stopPropagation三个事件进行兼容性处理
   function compatible(event, source) {
     if (source || !event.isDefaultPrevented) {
       source || (source = event)
