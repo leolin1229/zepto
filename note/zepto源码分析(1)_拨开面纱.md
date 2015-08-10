@@ -78,7 +78,7 @@ ios3           |              | 兼容iOS 3.x 的String.prototype.trim 和 Array
   - [Zepto文档](http://zeptojs.com/#$)
 
 **DOM操作区别**
-```
+```js
 $(function() {
   var $list = $('<ul><li>jQuery 插入</li></ul>', {
     id: 'insert-by-jquery'
@@ -90,7 +90,7 @@ jQuery 操作`ul` 上的 `id` 不会被添加；Zepto 可以在 `ul` 上添加 `
 
  **事件触发区别**
 
-```
+```js
 $script = $('<script />', {
   src: 'http://cdn.amazeui.org/amazeui/1.0.1/js/amazeui.min.js',
   id: 'ui-jquery'

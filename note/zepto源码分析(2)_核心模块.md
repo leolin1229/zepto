@@ -4,7 +4,7 @@
 ![zepto架构图](http://i3.tietuku.com/6c5d67bfec77a6c9.png)
 
 # 核心代码
-```
+```js
 var zepto = {};
 
 function Z(dom, selector) {
