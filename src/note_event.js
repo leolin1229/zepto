@@ -29,14 +29,17 @@
         && (!selector || handler.sel == selector)
     })
   }
+
+  // 解析事件的命名空间
   function parse(event) {
     var parts = ('' + event).split('.')
     return {e: parts[0], ns: parts.slice(1).sort().join(' ')}
   }
   function matcherFor(ns) {
-    return new RegExp('(?:^| )' + ns.replace(' ', ' .* ?') + '(?: |$)')
+    return new RegExp('(?:^| )' + ns.replace(' ', ' .* ?') + '(?: |$)') // (?:pattern)匹配pattern但不获取匹配结果
   }
 
+  // focus, blur只支持捕获
   function eventCapture(handler, captureSetting) {
     return handler.del &&
       (!focusinSupported && (handler.e in focus)) ||
@@ -54,7 +57,8 @@
       var handler   = parse(event)
       handler.fn    = fn
       handler.sel   = selector
-      // emulate mouseenter, mouseleave
+
+      // 模拟鼠标的mouseenter, mouseleave事件
       if (handler.e in hover) fn = function(e){
         var related = e.relatedTarget
         if (!related || (related !== this && !$.contains(this, related)))
@@ -120,9 +124,10 @@
   var returnTrue = function(){return true},
       returnFalse = function(){return false},
       ignoreProperties = /^([A-Z]|returnValue$|layer[XY]$)/,
+      // 对三大事件函数重置
       eventMethods = {
         preventDefault: 'isDefaultPrevented',
-        stopImmediatePropagation: 'isImmediatePropagationStopped',
+        stopImmediatePropagation: 'isImmediatePropagationStopped', // 阻止当前事件的冒泡行为并且阻止当前事件所在元素上的所有相同类型事件的事件处理函数的继续执行
         stopPropagation: 'isPropagationStopped'
       }
 
@@ -139,6 +144,7 @@
         event[predicate] = returnFalse
       })
 
+      // 调用事件的preventDefault()方法后,会引起该事件的 event.defaultPrevented 属性值变为true.
       if (source.defaultPrevented !== undefined ? source.defaultPrevented :
           'returnValue' in source ? source.returnValue === false :
           source.getPreventDefault && source.getPreventDefault())
@@ -171,15 +177,27 @@
     return this
   }
 
+  /**
+   * 绑定事件
+   * 
+   * @param  {[string]} event    事件名, 多个事件使用空格隔开, 或者以事件类型为键、以函数为值的对象方式{ type: handler, type2: handler2, ... }
+   * @param  {[type]}   selector 选择器
+   * @param  {[type]}   data     event.data的数据
+   * @param  {Function} callback 回调函数
+   * @param  {[type]}   one      是否执行一次
+   */
   $.fn.on = function(event, selector, data, callback, one){
     var autoRemove, delegator, $this = this
+
+    // event是k-v对象时候遍历绑定
     if (event && !isString(event)) {
       $.each(event, function(type, fn){
         $this.on(type, selector, data, fn, one)
       })
-      return $this
+      return $this // 返回this以便链式调用
     }
 
+    // 参数调整
     if (!isString(selector) && !isFunction(callback) && callback !== false)
       callback = data, data = selector, selector = undefined
     if (isFunction(data) || data === false)
