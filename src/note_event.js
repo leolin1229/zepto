@@ -1,4 +1,4 @@
-//     Zepto.js
+﻿//     Zepto.js
 //     (c) 2010-2014 Thomas Fuchs
 //     Zepto.js may be freely distributed under the MIT license.
 
@@ -15,16 +15,22 @@
 
   specialEvents.click = specialEvents.mousedown = specialEvents.mouseup = specialEvents.mousemove = 'MouseEvents'
 
+  // zid保存DOM事件回调函数的id
+  // 这里element参数有两种可能值
+  // 一是原生DOM对象
+  // 二是事件回调函数引用
   function zid(element) {
     return element._zid || (element._zid = _zid++)
   }
+
+  //查找绑定在元素上的指定类型的事件处理函数集合
   function findHandlers(element, event, fn, selector) {
     event = parse(event)
     if (event.ns) var matcher = matcherFor(event.ns)
     return (handlers[zid(element)] || []).filter(function(handler) {
       return handler
-        && (!event.e  || handler.e == event.e)
-        && (!event.ns || matcher.test(handler.ns))
+        && (!event.e  || handler.e == event.e) //判断事件类型是否相同
+        && (!event.ns || matcher.test(handler.ns)) //判断事件命名空间是否相同
         && (!fn       || zid(handler.fn) === zid(fn))
         && (!selector || handler.sel == selector)
     })
@@ -58,15 +64,16 @@
       handler.fn    = fn
       handler.sel   = selector
 
-      // 模拟鼠标的mouseenter, mouseleave事件
+      // 把鼠标的mouseenter, mouseleave事件统一转为mouseover, mouseout
       if (handler.e in hover) fn = function(e){
         var related = e.relatedTarget
         if (!related || (related !== this && !$.contains(this, related)))
           return handler.fn.apply(this, arguments)
       }
       handler.del   = delegator
-      var callback  = delegator || fn // 这个细节要注意, 优先取代理函数, 因为若代理函数存在则证明已经把fn绑定好
-      // handler.proxy用于addEventListener的回调函数参数
+      var callback  = delegator || fn // 这个细节要注意, 优先取代理函数, 因为若代理函数存在则证明已经把fn重新绑定好
+
+      // handler.proxy用于保存回调函数的引用
       handler.proxy = function(e){
         e = compatible(e)
         if (e.isImmediatePropagationStopped()) return
@@ -83,12 +90,13 @@
         element.addEventListener(realEvent(handler.e), handler.proxy, eventCapture(handler, capture))
     })
   }
+
   function remove(element, events, fn, selector, capture){
-    var id = zid(element)
+    var id = zid(element) // 取得DOM的id
     ;(events || '').split(/\s/).forEach(function(event){
       findHandlers(element, event, fn, selector).forEach(function(handler){
-        delete handlers[id][handler.i]
-      if ('removeEventListener' in element)
+        delete handlers[id][handler.i] // 删除handlers对象相应的handler对象
+      if ('removeEventListener' in element) // 调用removeEventListener
         element.removeEventListener(realEvent(handler.e), handler.proxy, eventCapture(handler, capture))
       })
     })
@@ -96,6 +104,7 @@
 
   $.event = { add: add, remove: remove }
 
+  // 接受一个函数，然后返回一个新函数，并且这个新函数始终保持了特定的上下文(context)语境，新函数中this指向context参数。
   $.proxy = function(fn, context) {
     var args = (2 in arguments) && slice.call(arguments, 2)
     if (isFunction(fn)) {
@@ -127,7 +136,7 @@
   var returnTrue = function(){return true},
       returnFalse = function(){return false},
       ignoreProperties = /^([A-Z]|returnValue$|layer[XY]$)/,
-      // 对三大事件状态进行标记, 如event.isDefaultPrevented()可获取是否preventDefault
+      // 对三大事件状态进行标记, 如event.isDefaultPrevented()可获取preventDefault的值
       eventMethods = {
         preventDefault: 'isDefaultPrevented',
         stopImmediatePropagation: 'isImmediatePropagationStopped', // 阻止当前事件的冒泡行为并且阻止当前事件所在元素上的所有相同类型事件的事件处理函数的继续执行
@@ -157,6 +166,7 @@
     return event
   }
 
+  // 对event部分属性进行抽取到proxy对象
   function createProxy(event) {
     var key, proxy = { originalEvent: event }
     for (key in event)
@@ -201,13 +211,14 @@
       return $this // 返回this以便链式调用
     }
 
-    // 参数调整
+    /*** 参数调整start ***/
     if (!isString(selector) && !isFunction(callback) && callback !== false)
       callback = data, data = selector, selector = undefined
     if (isFunction(data) || data === false)
       callback = data, data = undefined
 
     if (callback === false) callback = returnFalse
+    /*** 参数调整end ***/
 
     return $this.each(function(_, element){
       if (one) autoRemove = function(e){
@@ -215,9 +226,16 @@
         return callback.apply(this, arguments)
       }
 
+      // 匹配事件代理有两个方案, 一是从上往下检索,
+      // 二是从下往上检索, 这里是使用了方案二
+      // 原因是方案一查找不方便, 子节点不是唯一, 
+      // 即使用childNodes也需要进一步遍历,
+      // 而parentNode是唯一的
       if (selector) delegator = function(e){
+        // 从e.target向上查找离selector最近的父节点
         var evt, match = $(e.target).closest(selector, element).get(0)
         if (match && match !== element) {
+          // 重新扩展封装event
           evt = $.extend(createProxy(e), {currentTarget: match, liveFired: element})
           return (autoRemove || callback).apply(match, [evt].concat(slice.call(arguments, 1)))
         }
@@ -226,6 +244,13 @@
       add(element, event, callback, data, selector, delegator || autoRemove)
     })
   }
+
+  /**
+   * 移除通过 on 添加的事件
+   * @param  {[type]}   event    事件名字符串或者k-v对象
+   * @param  {[type]}   selector 选择器
+   * @param  {Function} callback 绑定时的回调函数
+   */
   $.fn.off = function(event, selector, callback){
     var $this = this
     if (event && !isString(event)) {
@@ -235,10 +260,12 @@
       return $this
     }
 
+    /*** 参数调整start ***/
     if (!isString(selector) && !isFunction(callback) && callback !== false)
       callback = selector, selector = undefined
 
     if (callback === false) callback = returnFalse
+    /*** 参数调整end ***/
 
     return $this.each(function(){
       remove(this, event, callback, selector)
@@ -249,21 +276,22 @@
     event = (isString(event) || $.isPlainObject(event)) ? $.Event(event) : compatible(event)
     event._args = args
     return this.each(function(){
-      // items in the collection might not be DOM elements
       // dom.dispatchEvent(eventObject) 参数eventObject表示事件对象，是createEvent()方法返回的创建的Event对象
       if('dispatchEvent' in this) this.dispatchEvent(event)
       else $(this).triggerHandler(event, args)
     })
   }
 
-  // triggers event handlers on current element just as if an event occurred,
-  // doesn't trigger an actual event, doesn't bubble
+  // 不能触发原生事件, 不能冒泡
   $.fn.triggerHandler = function(event, args){
     var e, result
     this.each(function(i, element){
       e = createProxy(isString(event) ? $.Event(event) : event)
       e._args = args
       e.target = element
+      //遍历元素上绑定的指定类型的事件处理函数集，按顺序执行，如果执行过stopImmediatePropagation，
+      //那么e.isImmediatePropagationStopped()就会返回true,再外层函数返回false
+      //注意each里的回调函数指定返回false时，会跳出循环，这样就达到的停止执行回面函数的目的
       $.each(findHandlers(element, event.type || event), function(i, handler){
         result = handler.proxy(e)
         if (e.isImmediatePropagationStopped()) return false
@@ -300,7 +328,7 @@
 
     // createEvent()方法返回新创建的Event对象
     var event = document.createEvent(specialEvents[type] || 'Events'), bubbles = true
-    if (props) for (var name in props) (name == 'bubbles') ? (bubbles = !!props[name]) : (event[eventName] = props[name])
+    if (props) for (var name in props) (name == 'bubbles') ? (bubbles = !!props[name]) : (event[name] = props[name])
     event.initEvent(type, bubbles, true) // initEvent(eventName, canBubble, preventDefault)
     return compatible(event)
   }
