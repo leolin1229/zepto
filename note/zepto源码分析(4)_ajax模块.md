@@ -2,19 +2,19 @@
 ## Ajax原理
 先说一下Ajax的过程:
 1) 创建请求
-```
+```js
 var xhr = new XMLHttpRequest();
 ```
 2) 连接服务器
-```
+```js
 xhr.open('GET', 'foo/bar.html', true);// open(方法GET/POST，请求地址， 异步传输)
 ```
 3) 发送请求
-```
+```js
 xhr.send(null);//如果是GET传入null，是POST则传入数据
 ```
 4) 等待响应
-```
+```js
 // 处理返回数据
 /*
 ** 每当readyState改变时，就会触发onreadystatechange事件
@@ -61,7 +61,7 @@ xhr.onreadystatechange = function(){
 全局事件的意思是可以在document对象上触发, 如果指定参数context是一个DOM节点, 则该事件会在此节点上触发然后DOM中冒泡. 唯一例外是`ajaxStart`和`ajaxStop`只能在document触发.
 
 至于局部事件就是使用`$.ajax()`方法
-```
+```js
 $.ajax({
     type: 'GET',
     url: 'http://example.com/get',
@@ -75,9 +75,9 @@ $.ajax({
 ![失败ajax事件流](http://i1.tietuku.com/56ff5fdfb92fc94e.png)
 
 ## show me the code
-### `$.ajax()`
+### $.ajax()
 核心方法是`$.ajax()`, 以下是去掉一些无关逻辑后的代码
-```
+```js
 $.ajax = function(options){
   var settings = $.extend({}, options || {}), // 防止options没有传入
       deferred = $.Deferred && $.Deferred() // 如果开启了deferred
@@ -131,9 +131,9 @@ $.ajax = function(options){
   return xhr
 }
 ```
-### '$.ajaxJSONP()'
+### $.ajaxJSONP()
 另外, jsonp跟ajax原理不一样, 单独有别的逻辑, 代码如下:
-```
+```js
 $.ajaxJSONP = function(options, deferred){
   var _callbackName = options.jsonpCallback,// jsonpCallback全局jsonp回调函数名, 设置后会有缓存
       callbackName = ($.isFunction(_callbackName) ?
