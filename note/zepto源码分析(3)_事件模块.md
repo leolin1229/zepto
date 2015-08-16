@@ -6,12 +6,12 @@
 ## 分析
 从上图可以看出, `add()`和`remove()`是最核心的两个方法.
 首先, 我们要知道js的事件移除很严格, 必须与绑定时参数一致, 包括引用也要一致, 例如:
-```
+```js
 el.addEventListerner(type, fn, capture);
 el.removeEventListerner(type, fn, capture);
 ```
 下面来看`add()`函数
-```
+```js
 function add(element, events, fn, data, selector, delegator, capture){
     var id = zid(element), set = (handlers[id] || (handlers[id] = [])) // set取上一次的handler
     events.split(/\s/).forEach(function(event){
@@ -53,7 +53,7 @@ zepto的事件模块还维护着一个名为`handlers`的对象, 它是长这个
 可以看到, `handlers`对象是的key是`_zid`递增的值, `_zid`维护着所有事件回调函数的引用, `handlers`的value是绑定在同一DOM的事件数组(包括代理在DOM上的事件).
 
 再看看`remove()`
-```
+```js
 function remove(element, events, fn, selector, capture){
     var id = zid(element) // 取得DOM的id
     ;(events || '').split(/\s/).forEach(function(event){
@@ -67,5 +67,5 @@ function remove(element, events, fn, selector, capture){
 ```
 `remove()`显得比较简单, 先取DOM的id也就是`_zid`的值, 然后遍历事件类型参数, 每一次遍历中拿着DOM, 事件类型, 回调引用和选择器去调用`findHandlers()`查询`handlers`相应value, 最后删除`handlers`对应的值并且调用removeEventListener. 
 
-### 代码
+### 更多
 更多代码注释请看[这里](https://github.com/leolin1229/zepto/blob/master/src/note_event.js)
