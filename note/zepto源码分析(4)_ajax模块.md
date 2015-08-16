@@ -1,19 +1,19 @@
 # zepto源码分析(4)_ajax模块
 ## Ajax原理
 先说一下Ajax的过程:
-1) 创建请求
+1. 创建请求
 ```js
 var xhr = new XMLHttpRequest();
 ```
-2) 连接服务器
+2. 连接服务器
 ```js
 xhr.open('GET', 'foo/bar.html', true);// open(方法GET/POST，请求地址， 异步传输)
 ```
-3) 发送请求
+3. 发送请求
 ```js
 xhr.send(null);//如果是GET传入null，是POST则传入数据
 ```
-4) 等待响应
+4. 等待响应
 ```js
 // 处理返回数据
 /*
@@ -50,12 +50,19 @@ xhr.onreadystatechange = function(){
 ## zepto的Ajax事件
 ### zepto的Ajax分为全局事件和局部事件.
 在Ajax的生命周期中, 以下全局事件将会触发:
+
 1. `ajaxStart`: 如果没有其他Ajax请求当前活跃将会被触发.
+
 2. `ajaxBeforeSend`: 在发送请求前，可以`return false`取消.
+
 3. `ajaxSend`: 类似 `ajaxBeforeSend`, 但不能取消.
+
 4. `ajaxSuccess`: 返回成功时触发.
+
 5. `ajaxError`: 请求过程中error时触发.
+
 6. `ajaxComplete`: 请求已经完成后, 无论请求是成功或者失败都会触发.
+
 7. `ajaxStop`: 如果这是最后一个活跃的Ajax请求，将会被触发.
 
 全局事件的意思是可以在document对象上触发, 如果指定参数context是一个DOM节点, 则该事件会在此节点上触发然后DOM中冒泡. 唯一例外是`ajaxStart`和`ajaxStop`只能在document触发.
