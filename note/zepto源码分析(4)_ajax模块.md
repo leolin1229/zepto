@@ -3,21 +3,25 @@
 先说一下Ajax的过程:
 
 1. 创建请求
+
 ```js
 var xhr = new XMLHttpRequest();
 ```
 
 2. 连接服务器
+
 ```js
 xhr.open('GET', 'foo/bar.html', true);// open(方法GET/POST，请求地址， 异步传输)
 ```
 
 3. 发送请求
+
 ```js
 xhr.send(null);//如果是GET传入null，是POST则传入数据
 ```
 
 4. 等待响应
+
 ```js
 // 处理返回数据
 /*
