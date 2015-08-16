@@ -4,25 +4,25 @@
 
 1. 创建请求
 
-```js
+ ```js
 var xhr = new XMLHttpRequest();
-```
+ ```
 
 2. 连接服务器
 
-```js
+ ```js
 xhr.open('GET', 'foo/bar.html', true);// open(方法GET/POST，请求地址， 异步传输)
-```
+ ```
 
 3. 发送请求
 
-```js
+ ```js
 xhr.send(null);//如果是GET传入null，是POST则传入数据
-```
+ ```
 
 4. 等待响应
 
-```js
+ ```js
 // 处理返回数据
 /*
 ** 每当readyState改变时，就会触发onreadystatechange事件
@@ -52,7 +52,7 @@ xhr.onreadystatechange = function(){
         }
     }
 }
-```
+ ```
 
 一个原生的ajax的流程大概就是这样, 当然还有一些细节就不叙述了.
 
